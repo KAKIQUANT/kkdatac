@@ -1,0 +1,19 @@
+defaults:
+  - _self_
+  - db: mongodb
+
+proxy:
+  http: http://localhost:7890
+  https: http://localhost:7890
+  socks5: socks5://localhost:7890
+
+output:
+  dir: "./logs/"
+
+datasource:
+  timezone: Asia/Shanghai
+  crypto: true
+  cn_share: true
+  us_share: true
+  hk_share: true
+  fund: true
