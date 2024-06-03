@@ -1,7 +1,5 @@
-from pymongo import MongoClient
 from dotenv import load_dotenv
-from okx import PublicData
-from kaki.datafeed.reader.MongoDataReader import DownloadData
+from kkdb.reader.MongoDataReader import DownloadData
 import pandas as pd
 from typing import Union, List
 from tqdm import tqdm

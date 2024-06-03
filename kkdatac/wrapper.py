@@ -3,7 +3,7 @@ import hydra
 import pandas as pd
 from omegaconf import DictConfig
 from enum import Enum
-
+from kkdatac.crypto import get_price as get_crypto_price
 ODER_BOOK_IDS = str | list[str]
 FIELDS = str | list[str]
 
@@ -132,7 +132,11 @@ def get_price(
     :param time_slice: str, optional, default None 时间片段，开始、结束时间段。默认返回当天所有数据。支持分钟 / tick 级别的切分，详见下方范例。
     :return: pd.DataFrame or dict 合约的行情数据
     """
-    pass
+    if market == "crypto":
+        df = get_crypto_price(instId=order_book_ids, bar=frequency, start_date=start_date, end_date=end_date, fields=fields)
+    else:
+        raise NotImplementedError("Market not supported.")
+    return df
 
 def get_ticks(order_book_id) -> pd.DataFrame:
     """
