@@ -1,11 +1,12 @@
 from datetime import datetime
-import hydra
 import pandas as pd
-from omegaconf import DictConfig
 from enum import Enum
-from kkdatac.crypto import get_price as get_crypto_price
+from kkdb.reader.MongoDataReader import DownloadData
+from matplotlib import pyplot as plt
+
 ODER_BOOK_IDS = str | list[str]
 FIELDS = str | list[str]
+
 
 def Markets(Enum):
     OKX_CRYPTO = "okx"
@@ -24,12 +25,6 @@ def Catogories(Enum):
     Fund = "fund"
     Bond = "bond"
     Forex = "forex"
-
-
-@hydra.main(config_path="config", config_name="config", version_base="1.3")
-def main(cfg: DictConfig):
-    print(cfg.pretty())
-    print(cfg.market)
 
 
 def all_instruments(type=None, market="cn", date=None):
@@ -132,11 +127,23 @@ def get_price(
     :param time_slice: str, optional, default None 时间片段，开始、结束时间段。默认返回当天所有数据。支持分钟 / tick 级别的切分，详见下方范例。
     :return: pd.DataFrame or dict 合约的行情数据
     """
-    if market == "crypto":
-        df = get_crypto_price(instId=order_book_ids, bar=frequency, start_date=start_date, end_date=end_date, fields=fields)
+    if isinstance(order_book_ids, str):
+        df = DownloadData._get_price(
+            market, order_book_ids, frequency, start_date, end_date, fields
+        )
+    elif isinstance(order_book_ids, list):
+        dfs = []
+        for id_ in order_book_ids:
+            dfs.append(
+                DownloadData._get_price(
+                    market, id_, frequency, start_date, end_date, fields
+                )
+            )
+        df = pd.concat(dfs).reset_index(drop=True)
     else:
-        raise NotImplementedError("Market not supported.")
-    return df
+        raise ValueError("order_book_ids must be either a string or a list of strings.")
+    return df.reset_index(drop=True)
+
 
 def get_ticks(order_book_id) -> pd.DataFrame:
     """
@@ -147,7 +154,10 @@ def get_ticks(order_book_id) -> pd.DataFrame:
     """
     pass
 
-def get_open_auction_info(order_book_ids,start_date, end_date,market='cn') -> pd.DataFrame:
+
+def get_open_auction_info(
+    order_book_ids, start_date, end_date, market="cn"
+) -> pd.DataFrame:
     """获取当日给定合约的盘前集合竞价期间的 level1 快照行情。
     :param order_book_ids: str or str list 合约代码，可传入 order_book_id, order_book_id list。
     :param start_date: str 开始日期，格式为'YYYY-MM-DD'
@@ -157,7 +167,8 @@ def get_open_auction_info(order_book_ids,start_date, end_date,market='cn') -> pd
     """
     pass
 
-def get_trading_dates(start_date, end_date, market='cn'):
+
+def get_trading_dates(start_date, end_date, market="cn"):
     """获取交易日列表
     获取指定日期范围内的交易日列表，包含起始日期和结束日期。
     :param start_date: str 开始日期，格式为'YYYY-MM-DD'
@@ -167,7 +178,8 @@ def get_trading_dates(start_date, end_date, market='cn'):
     """
     pass
 
-def get_previous_trading_date(date,n,market='cn'):
+
+def get_previous_trading_date(date, n, market="cn"):
     """获取指定日期前 n 个交易日
     获取指定日期前 n 个交易日的日期。
     :param date: str 日期，格式为'YYYY-MM-DD'
@@ -177,7 +189,8 @@ def get_previous_trading_date(date,n,market='cn'):
     """
     pass
 
-def get_next_trading_date(date, n, market='cn'):
+
+def get_next_trading_date(date, n, market="cn"):
     """获取指定日期后 n 个交易日
     获取指定日期后 n 个交易日的日期。
     :param date: str 日期，格式为'YYYY-MM-DD'
@@ -187,9 +200,49 @@ def get_next_trading_date(date, n, market='cn'):
     """
     pass
 
+
 def get_latest_trading_date() -> datetime.date:
     """获取最近一个交易日
     获取最近一个交易日的日期。
     :return: datetime.date 日期
     """
     pass
+
+
+if __name__ == "__main__":
+    # all_instruments()
+    # id_convert()
+    # df = get_price(
+    #     "BTC-USDT-SWAP",
+    #     start_date="2023-01-01",
+    #     end_date="2024-01-01",
+    #     frequency="1D",
+    #     fields=["open", "high", "low", "close"],
+    #     adjust_type="pre",
+    #     skip_suspended=False,
+    #     market="crypto",
+    #     expect_df=True,
+    #     time_slice=None,
+    # )
+    
+    # get_ticks()
+    # get_open_auction_info()
+    # get_trading_dates()
+    # get_previous_trading_date()
+    # get_next_trading_date()
+    # get_latest_trading_date()
+    df = get_price(
+        "000001",
+        "2013-01-04",
+        "2014-01-04",
+        "1D",
+        None,
+        "pre",
+        False,
+        "cn_stock",
+        True,
+        None,
+    )
+    print(df)
+    df.plot(x="datetime", y="close")
+    plt.show()

@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf8") as fh:
     long_description = fh.read()
 setup(
     name="kkdatac",
-    version="0.0.1",
+    version="0.0.2",
     author="Shengyang Wang",
     author_email="shengyang.wang2@dukekunshan.edu.cn",
     description="Querying data from various databases maintained by kkdatabase",
