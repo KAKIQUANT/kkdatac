@@ -109,7 +109,7 @@ def get_price(
     fields: FIELDS = None,
     adjust_type="pre",
     skip_suspended=False,
-    market="cn",
+    market="cn_stock",
     expect_df=True,
     time_slice=None,
 ):
