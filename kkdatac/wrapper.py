@@ -112,6 +112,7 @@ def get_price(
     market="cn_stock",
     expect_df=True,
     time_slice=None,
+    **kwargs,
 ):
     """
     获取合约的行情数据
@@ -129,14 +130,14 @@ def get_price(
     """
     if isinstance(order_book_ids, str):
         df = DownloadData._get_price(
-            market, order_book_ids, frequency, start_date, end_date, fields
+            market, order_book_ids, frequency, start_date, end_date, fields, **kwargs
         )
     elif isinstance(order_book_ids, list):
         dfs = []
         for id_ in order_book_ids:
             dfs.append(
                 DownloadData._get_price(
-                    market, id_, frequency, start_date, end_date, fields
+                    market, id_, frequency, start_date, end_date, fields, **kwargs
                 )
             )
         df = pd.concat(dfs).reset_index(drop=True)
@@ -212,19 +213,22 @@ def get_latest_trading_date() -> datetime.date:
 if __name__ == "__main__":
     # all_instruments()
     # id_convert()
-    # df = get_price(
-    #     "BTC-USDT-SWAP",
-    #     start_date="2023-01-01",
-    #     end_date="2024-01-01",
-    #     frequency="1D",
-    #     fields=["open", "high", "low", "close"],
-    #     adjust_type="pre",
-    #     skip_suspended=False,
-    #     market="crypto",
-    #     expect_df=True,
-    #     time_slice=None,
-    # )
-    
+    df = get_price(
+        "BTC-USDT-SWAP",
+        start_date="2023-01-01",
+        end_date="2024-01-01",
+        frequency="1D",
+        fields=["open", "high", "low", "close"],
+        adjust_type="pre",
+        skip_suspended=False,
+        market="crypto_okx",
+        expect_df=True,
+        time_slice=None,
+        db_str="mongodb://localhost:27017/"
+    )
+    print(df)
+    df.plot(x="timestamp", y="close")
+    plt.show()
     # get_ticks()
     # get_open_auction_info()
     # get_trading_dates()
@@ -232,9 +236,9 @@ if __name__ == "__main__":
     # get_next_trading_date()
     # get_latest_trading_date()
     df = get_price(
-        "000001",
+        "600733",
         "2013-01-04",
-        "2014-01-04",
+        "2022-01-04",
         "1D",
         None,
         "pre",
@@ -242,7 +246,8 @@ if __name__ == "__main__":
         "cn_stock",
         True,
         None,
+        db_str="mongodb://localhost:27017/"
     )
     print(df)
-    df.plot(x="datetime", y="close")
+    df.plot(x="timestamp", y="close")
     plt.show()
