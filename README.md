@@ -4,45 +4,29 @@ Querying data from various databases maintained by kkdatabase
 ## Tutorial:
 ### 1. Install the package
 ```bash
-pip install kkdatac
+# pip install kkdatac
+pip install git+https://github.com/KAKIQUANT/kkdatac.git
 ```
 ### 2. Import the package
 ```python
-from kkdatac import get_price
+from kkdatac import get_price, sql
+# or just import kkdatac
 ```
 ### 3. Use the package
 ```python
-# For OKX_CRYPTO
-df = get_price(
-    "BTC-USDT-SWAP",
-    start_date="2023-01-01",
-    end_date="2024-01-01",
-    frequency="1D",
-    fields=["open", "high", "low", "close"],
-    adjust_type="pre",
-    skip_suspended=False,
-    market="crypto",
-    expect_df=True,
-    time_slice=None,
-)
-
-print(df)
+# Simple query
+import kkdatac
+kkdatac.sql('show tables')
+kkdatac.sql('show databases')
 ```
-OR, for CN_STOCK
 ```python
-df = get_price(
-    "000001",
-    "2013-01-04",
-    "2014-01-04",
-    "1D",
-    None,
-    "pre",
-    False,
-    "cn_stock",
-    True,
-    None,
-)
-print(df)
-df.plot(x="datetime", y="close")
-plt.show()
+# Query the financial data
+import kkdatac
+# Query balancesheet
+# TODO: Add more examples
+```
+
+### Examining the database
+```bash
+python test/db_report.py
 ```
