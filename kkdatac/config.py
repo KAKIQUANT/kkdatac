@@ -1,0 +1,1 @@
+KKDATAD_ENDPOINT = "https://api.kakiquant.icu"

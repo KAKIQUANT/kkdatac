@@ -1,8 +1,7 @@
 from datetime import datetime
 import pandas as pd
 from enum import Enum
-from kkdb.reader.MongoDataReader import DownloadData
-from matplotlib import pyplot as plt
+from client import KKDataClient
 
 ODER_BOOK_IDS = str | list[str]
 FIELDS = str | list[str]
@@ -128,22 +127,7 @@ def get_price(
     :param time_slice: str, optional, default None 时间片段，开始、结束时间段。默认返回当天所有数据。支持分钟 / tick 级别的切分，详见下方范例。
     :return: pd.DataFrame or dict 合约的行情数据
     """
-    if isinstance(order_book_ids, str):
-        df = DownloadData._get_price(
-            market, order_book_ids, frequency, start_date, end_date, fields, **kwargs
-        )
-    elif isinstance(order_book_ids, list):
-        dfs = []
-        for id_ in order_book_ids:
-            dfs.append(
-                DownloadData._get_price(
-                    market, id_, frequency, start_date, end_date, fields, **kwargs
-                )
-            )
-        df = pd.concat(dfs).reset_index(drop=True)
-    else:
-        raise ValueError("order_book_ids must be either a string or a list of strings.")
-    return df.reset_index(drop=True)
+    pass
 
 
 def get_ticks(order_book_id) -> pd.DataFrame:
@@ -209,45 +193,12 @@ def get_latest_trading_date() -> datetime.date:
     """
     pass
 
+def sql(sql_query: str, api_key: str | None = None) -> pd.DataFrame:
+    """
+    Send a SQL query to the kkdatad server and return the result as a pandas DataFrame.
+    """
+    client = KKDataClient(api_key)
+    return client.run_query(sql_query)
 
 if __name__ == "__main__":
-    # all_instruments()
-    # id_convert()
-    df = get_price(
-        "BTC-USDT-SWAP",
-        start_date="2023-01-01",
-        end_date="2024-01-01",
-        frequency="1D",
-        fields=["open", "high", "low", "close"],
-        adjust_type="pre",
-        skip_suspended=False,
-        market="crypto_okx",
-        expect_df=True,
-        time_slice=None,
-        db_str="mongodb://localhost:27017/"
-    )
-    print(df)
-    df.plot(x="timestamp", y="close")
-    plt.show()
-    # get_ticks()
-    # get_open_auction_info()
-    # get_trading_dates()
-    # get_previous_trading_date()
-    # get_next_trading_date()
-    # get_latest_trading_date()
-    df = get_price(
-        "600733",
-        "2013-01-04",
-        "2022-01-04",
-        "1D",
-        None,
-        "pre",
-        False,
-        "cn_stock",
-        True,
-        None,
-        db_str="mongodb://localhost:27017/"
-    )
-    print(df)
-    df.plot(x="timestamp", y="close")
-    plt.show()
+    pass

@@ -1,5 +1,0 @@
-server: "mongodb://10.201.8.215:27017"
-username: ""
-password: ""
-output:
-  dir: "./logs/"
