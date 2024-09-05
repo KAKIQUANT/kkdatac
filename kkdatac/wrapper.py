@@ -1,7 +1,7 @@
 from datetime import datetime
 import pandas as pd
 from enum import Enum
-from client import KKDataClient
+from kkdatac.client import KKDataClient
 
 ODER_BOOK_IDS = str | list[str]
 FIELDS = str | list[str]
@@ -197,7 +197,7 @@ def sql(sql_query: str, api_key: str | None = None) -> pd.DataFrame:
     """
     Send a SQL query to the kkdatad server and return the result as a pandas DataFrame.
     """
-    client = KKDataClient(api_key)
+    client = KKDataClient(api_key=api_key)
     return client.run_query(sql_query)
 
 if __name__ == "__main__":

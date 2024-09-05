@@ -6,7 +6,7 @@ import pickle
 
 import warnings
 
-from config import KKDATAD_ENDPOINT
+from kkdatac.config import KKDATAD_ENDPOINT
 
 class KKDataClient:
     def __init__(self, base_url: str = KKDATAD_ENDPOINT, api_key: str | None = None):
