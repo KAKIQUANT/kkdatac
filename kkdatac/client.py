@@ -32,13 +32,16 @@ class KKDataClient:
         """
         if self.api_key is None:
             warnings.warn("API key is not set. Using free version now. Some features may not be available.")
-            url = f"{self.base_url}/sql-free/"
-            payload = {'query': sql_query}
+            # Free version: append the query to the URL
+            url = f"{self.base_url}/sql-free/?query={requests.utils.quote(sql_query)}"
+            response = requests.post(url)
         else:
-            url = f"{self.base_url}/sql/"
-            payload = {'query': sql_query, 'api_key': self.api_key}
-        # Send the request to the server
-        response = requests.post(url, json=payload, headers=self.headers)
+            # Non-free version: append the query to the URL
+            url = f"{self.base_url}/sql/?query={requests.utils.quote(sql_query)}"
+            # Correct the header to match your curl command
+            headers = {'api-key': self.api_key, 'accept': 'application/json'}
+            # Send the request with API key in headers
+            response = requests.post(url, headers=headers)
 
         # Handle the response
         if response.status_code == 200:
@@ -82,6 +85,7 @@ if __name__ == "__main__":
     client = KKDataClient()
 
     # Run a query and get a pandas DataFrame
-    query = "SELECT * FROM your_table"
+    # query = "SELECT * FROM your_table"
+    query = "show databases"
     df = client.run_query(query)
     print(df)
