@@ -4,7 +4,7 @@ import lz4.frame
 import binascii
 import pickle
 
-from sqlalchemy.testing.plugin.plugin_base import warnings
+import warnings
 
 from config import KKDATAD_ENDPOINT
 
@@ -16,6 +16,7 @@ class KKDataClient:
         self.base_url = base_url
         self.api_key = api_key
         self.headers = {'api_key': self.api_key}
+
 
     def _decompress_data(self, compressed_data_hex: str):
         """
@@ -78,7 +79,7 @@ class KKDataClient:
 
 # Example usage:
 if __name__ == "__main__":
-    client = KKDataClient(base_url="http://localhost:8000", api_key="your_api_key_here")
+    client = KKDataClient()
 
     # Run a query and get a pandas DataFrame
     query = "SELECT * FROM your_table"
