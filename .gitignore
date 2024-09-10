@@ -5,6 +5,7 @@ __pycache__/
 kkdb/outputs/*
 # C extensions
 *.so
+*.sql
 .DS_Store
 **/.DS_Store
 .DS_Store?
