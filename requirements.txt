@@ -3,14 +3,9 @@ typing
 typing-extensions
 pandas
 numpy
-seaborn
 tqdm
-OmegaConf
-hydra-core
-# Database
-motor
-pymongo
-
+lz4
+requests
 
 
 
