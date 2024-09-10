@@ -193,11 +193,11 @@ def get_latest_trading_date() -> datetime.date:
     """
     pass
 
-def sql(sql_query: str, api_key: str | None = None) -> pd.DataFrame:
+def sql(sql_query: str, api_key: str | None = None, base_url: str | None = None) -> pd.DataFrame:
     """
     Send a SQL query to the kkdatad server and return the result as a pandas DataFrame.
     """
-    client = KKDataClient(api_key=api_key)
+    client = KKDataClient(api_key=api_key, base_url=base_url)
     return client.run_query(sql_query)
 
 if __name__ == "__main__":

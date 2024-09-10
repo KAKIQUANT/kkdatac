@@ -6,6 +6,7 @@ kkdb/outputs/*
 # C extensions
 *.so
 *.sql
+*.pkl
 .DS_Store
 **/.DS_Store
 .DS_Store?

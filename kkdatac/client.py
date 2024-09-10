@@ -3,9 +3,7 @@ import pandas as pd
 import lz4.frame
 import binascii
 import pickle
-
 import warnings
-
 from kkdatac.config import KKDATAD_ENDPOINT
 
 class KKDataClient:
@@ -17,14 +15,31 @@ class KKDataClient:
         self.api_key = api_key
         self.headers = {'api_key': self.api_key}
 
-
     def _decompress_data(self, compressed_data_hex: str):
         """
         Decompress the received hex-encoded LZ4 compressed data.
+        Also returns the size of the compressed and decompressed data.
         """
+        import time
+        start = time.time()
+        # Convert hex to binary
         compressed_data = binascii.unhexlify(compressed_data_hex)
+        conversion_time = time.time() - start
+        # Size of the compressed data
+        compressed_size = len(compressed_data)
+
+        # Decompress data
         decompressed_data = lz4.frame.decompress(compressed_data)
-        return pickle.loads(decompressed_data)
+        decompression_time = time.time() - start - conversion_time
+        # Size of the decompressed data
+        decompressed_size = len(decompressed_data)
+
+        # Load the decompressed pickle data into Python objects
+        data = pickle.loads(decompressed_data)
+        data_load_time = time.time() - start - conversion_time - decompression_time
+        print(f"Traffic used: {compressed_size} bytes (compressed), {decompressed_size} bytes (decompressed)")
+        print(f"Time used: {conversion_time:.2f} s (conversion), {decompression_time:.2f} s (decompression), {data_load_time:.2f} s (loading)")
+        return data
 
     def run_query(self, sql_query: str) -> pd.DataFrame:
         """
@@ -85,7 +100,6 @@ if __name__ == "__main__":
     client = KKDataClient()
 
     # Run a query and get a pandas DataFrame
-    # query = "SELECT * FROM your_table"
     query = "show databases"
     df = client.run_query(query)
     print(df)
