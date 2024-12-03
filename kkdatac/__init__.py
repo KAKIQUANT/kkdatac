@@ -1,4 +1,13 @@
-from .wrapper import get_price, sql
-from kkdatac.client import KKDataClient
+from .wrapper import (
+    get_price,
+    get_fundamentals,
+    get_trading_dates,
+    sql
+)
 
-__all__ = ["get_price", "sql", "KKDataClient"]
+__all__ = [
+    "get_price",
+    "get_fundamentals", 
+    "get_trading_dates",
+    "sql"
+]

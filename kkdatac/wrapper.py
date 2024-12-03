@@ -2,6 +2,7 @@ from datetime import datetime
 import pandas as pd
 from enum import Enum
 from kkdatac.client import KKDataClient
+from .utils.code_converter import CodeConverter
 
 ODER_BOOK_IDS = str | list[str]
 FIELDS = str | list[str]
@@ -101,34 +102,121 @@ def id_convert(order_book_ids: ODER_BOOK_IDS, to="normal") -> ODER_BOOK_IDS:
 
 
 def get_price(
-    order_book_ids: ODER_BOOK_IDS,
-    start_date="2013-01-04",
-    end_date="2014-01-04",
-    frequency="1D",
-    fields: FIELDS = None,
-    adjust_type="pre",
-    skip_suspended=False,
-    market="cn_stock",
-    expect_df=True,
-    time_slice=None,
-    **kwargs,
-):
+    order_book_ids: str | list[str],
+    start_date: str | None = None,
+    end_date: str | None = None,
+    frequency: str = '1d',
+    fields: list[str] | None = None,
+    adjust_type: str = 'pre',
+    skip_suspended: bool = False,
+) -> pd.DataFrame:
+    """Get price data for securities"""
+    # Convert RiceQuant codes to internal format
+    internal_codes = CodeConverter.convert_codes(order_book_ids, 'internal')
+    
+    # Rest of the implementation...
+    table = _get_table_by_frequency(frequency)
+    field_str = ', '.join(fields) if fields else '*'
+    order_book_ids_str = _format_security_list(internal_codes)
+    
+    query = f"""
+    SELECT {field_str} 
+    FROM {table}
+    WHERE ts_code IN ({order_book_ids_str})
     """
-    获取合约的行情数据
-    :param order_book_ids: str or str list 合约代码，可传入 order_book_id, order_book_id list。
-    :param start_date: str, optional, default '2013-01-04' 开始日期，格式为'YYYY-MM-DD'
-    :param end_date: str, optional, default '2014-01-04' 结束日期，格式为'YYYY-MM-DD'
-    :param frequency: str, optional, default '1D' 数据频率，'1D' - 日线；'1m' - 分钟线; '5m' - 5分钟线；'15m' - 15分钟线；'30m' - 30分钟线；'60m' - 60分钟线; '1H' - 小时线; '4H' - 4小时线; 1W' - 周线; '1M' - 月线
-    :param fields: str list, optional, default None 需要查询的字段，默认查询所有字段
-    :param adjust_type: str, optional, default 'pre' 复权类型，'pre' - 前复权；'none' - 不复权；'post' - 后复权
-    :param skip_suspended: bool, optional, default False 是否跳过停牌数据。默认为 False，不跳过，用停牌前数据进行补齐。True 则为跳过停牌期。注意，当设置为 True 时，函数 order_book_id 只支持单个合约传入
-    :param market: str, optional, default 'cn' 默认是中国内地市场('cn') 。可选'cn' - 中国内地市场；'crypto' - 加密货币市场
-    :param expect_df: bool, optional, default True 返回数据类型，True 返回 pd.DataFrame，False 返回 dict
-    :param time_slice: str, optional, default None 时间片段，开始、结束时间段。默认返回当天所有数据。支持分钟 / tick 级别的切分，详见下方范例。
-    :return: pd.DataFrame or dict 合约的行情数据
-    """
-    pass
+    
+    # ... rest of the code ...
+    
+    df = sql(query)
+    
+    # Convert codes back to RiceQuant format in result
+    if 'ts_code' in df.columns:
+        df['ts_code'] = CodeConverter.convert_codes(df['ts_code'].tolist(), 'rq')
+    
+    return df
 
+def get_fundamentals(
+    table: str,
+    security_list: list[str] | None = None,
+    fields: list[str] | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    limit: int | None = None
+) -> pd.DataFrame:
+    """
+    Get fundamental data, similar to RQData's API
+    
+    Args:
+        table: Fundamental table name
+        security_list: List of security codes
+        fields: Fields to fetch
+        start_date: Start date
+        end_date: End date
+        limit: Limit number of records
+    """
+    field_str = ', '.join(fields) if fields else '*'
+    query = f"SELECT {field_str} FROM {table}"
+    
+    conditions = []
+    if security_list:
+        securities_str = _format_security_list(security_list)
+        conditions.append(f"ts_code IN ({securities_str})")
+    if start_date:
+        conditions.append(f"trade_date >= '{start_date}'")
+    if end_date:
+        conditions.append(f"trade_date <= '{end_date}'")
+        
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+        
+    if limit:
+        query += f" LIMIT {limit}"
+        
+    return sql(query)
+
+def get_trading_dates(
+    start_date: str,
+    end_date: str
+) -> list:
+    """Get trading dates between start_date and end_date"""
+    query = f"""
+    SELECT DISTINCT trade_date 
+    FROM daily 
+    WHERE trade_date BETWEEN '{start_date}' AND '{end_date}'
+    ORDER BY trade_date
+    """
+    df = sql(query)
+    return df['trade_date'].tolist()
+
+def _get_table_by_frequency(frequency: str) -> str:
+    """Map frequency to table name"""
+    mapping = {
+        '1d': 'daily',
+        '1w': 'weekly',
+        '1m': 'monthly',
+        '1min': 'mins1',
+        '5min': 'mins5',
+        '15min': 'mins15',
+        '30min': 'mins30',
+        '60min': 'mins60'
+    }
+    return mapping.get(frequency, 'daily')
+
+def _format_security_list(securities: str | list[str]) -> str:
+    """Format security list for SQL query"""
+    if isinstance(securities, str):
+        return f"'{securities}'"
+    return ', '.join(f"'{s}'" for s in securities)
+
+def _adjust_price(df: pd.DataFrame, adjust_type: str) -> pd.DataFrame:
+    """Apply price adjustments"""
+    # TODO: Implement price adjustment logic
+    return df
+
+def _remove_suspended(df: pd.DataFrame) -> pd.DataFrame:
+    """Remove suspended trading days"""
+    # TODO: Implement suspended days removal
+    return df
 
 def get_ticks(order_book_id) -> pd.DataFrame:
     """
@@ -149,17 +237,6 @@ def get_open_auction_info(
     :param end_date: str 结束日期，格式为'YYYY-MM-DD'
     :param market: str, optional, default 'cn' 默认是中国内地市场('cn') 。可选'cn' - 中国内地市场；'hk' - 香港市场
     :return: pd.DataFrame multi-index DataFrame 合约的盘前集合竞价期间的 level1 快照行情
-    """
-    pass
-
-
-def get_trading_dates(start_date, end_date, market="cn"):
-    """获取交易日列表
-    获取指定日期范围内的交易日列表，包含起始日期和结束日期。
-    :param start_date: str 开始日期，格式为'YYYY-MM-DD'
-    :param end_date: str 结束日期，格式为'YYYY-MM-DD'
-    :param market: str, optional, default 'cn' 默认是中国内地市场('cn') . 仅支持中国市场. 加密货币市场不会暂停交易
-    :return: list 交易日列表
     """
     pass
 
